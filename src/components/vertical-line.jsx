@@ -36,7 +36,7 @@ export default class VerticalLine extends React.Component {
 
     // element
     return (
-      <path d={`M${x},${startY} V${endY}`} stroke="#666" strokeWidth="1"/>
+      <path d={`M${x.toFixed(1)},${startY} V${endY}`} stroke="#666" strokeWidth="1"/>
     );
   }
 }

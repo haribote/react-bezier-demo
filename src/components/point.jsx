@@ -37,7 +37,7 @@ export default class Point extends React.Component {
 
     // element
     return (
-      <circle r={r} cx={0} cy={0} fill={stroke} transform={`translate(${x}, ${y})`} onMouseDown={this.mouseDownHandler.bind(this)}/>
+      <circle r={r} cx={0} cy={0} fill={stroke} transform={`translate(${x}, ${y})`} onMouseDown={this.mouseDownHandler.bind(this)} style={{ cursor: 'pointer' }}/>
     );
   }
 

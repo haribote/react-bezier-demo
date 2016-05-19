@@ -31,7 +31,8 @@ export default class App extends React.Component {
 
     // ステートを定義する
     this.state = {
-      values: [25, 75, 0, 100, 25]
+      values: [25, 75, 0, 100, 25, 75, 0, 100, 25],
+      inDrag: false
     }
   }
 
@@ -65,7 +66,7 @@ export default class App extends React.Component {
     // cache
     const {svgWidth, svgHeight, translateY, stroke} = this.props;
     const areaHeight = this.areaHeight;
-    const {values} = this.state;
+    const {values, inDrag} = this.state;
     const yList      = values.map((val, i) => {
       return svgWidth / (values.length + 1) * (i + 1) - .5;
     });
@@ -77,9 +78,10 @@ export default class App extends React.Component {
 
     // element
     return (
-      <div>
+      <div style={{ 'width': svgWidth, 'margin': '0 auto' }}>
         <h1>React Bezier Demo</h1>
-        <svg viewBox={`${0} ${0} ${svgWidth} ${svgHeight}`} width={svgWidth} height={svgHeight}>
+        <svg viewBox={`${0} ${0} ${svgWidth} ${svgHeight}`} width={svgWidth} height={svgHeight}
+             style={{ cursor: inDrag ? 'pointer' : '' }}>
           <defs>
             <linearGradient id="g0" x1={0} y1={0} x2={0} y2={1}>
               <stop offset="0" stopColor="#001c58"/>
@@ -95,8 +97,7 @@ export default class App extends React.Component {
           <g transform={`translate(0, ${translateY})`}>
             {([0, .25, .5, .75, 1]).map((y, i) => {
               return (
-                <HorizontalLine key={i} startX={0} endX={svgWidth} y={areaHeight * y}
-                                isDashed={i % 2}/>
+                <HorizontalLine key={i} startX={0} endX={svgWidth} y={areaHeight * y} isDashed={i % 2}/>
               );
             })}
             <BezierCurve values={this.state.values} width={svgWidth} height={areaHeight} getY={getY} stroke={stroke}/>
@@ -119,8 +120,13 @@ export default class App extends React.Component {
    */
   pointMouseDownHandler(startY, index = 0) {
     //cache
-    const {values} = this.state;
+    const {values, inDrag} = this.state;
     const value = values[index];
+
+    // chech state
+    if (inDrag) {
+      return;
+    }
 
     // function
     const updateValueTemp = (currentY) => {
@@ -133,6 +139,13 @@ export default class App extends React.Component {
     };
     const upHandler   = (evUp) => {
       updateValueTemp(evUp.pageY);
+
+      // update state
+      this.setState({
+        inDrag: false
+      });
+
+      // unbind event handlers
       window.removeEventListener('mousemove', moveHandler);
       window.removeEventListener('mouseup', upHandler);
     };
@@ -140,6 +153,11 @@ export default class App extends React.Component {
     // bind event handlers
     window.addEventListener('mousemove', moveHandler, false);
     window.addEventListener('mouseup', upHandler, false);
+
+    // update state
+    this.setState({
+      inDrag: true
+    });
   }
 
   updateValue(newValue = 0, index = 0) {
@@ -153,13 +171,13 @@ export default class App extends React.Component {
       values: this.state.values.map((val, i) => {
         if (i === index) {
           // cache
-          const quoterVal        = newValue / QUARTER;
-          const roundedQuoterVal = Math.round(quoterVal);
+          const quarterVal        = newValue / QUARTER;
+          const roundedQuarterVal = Math.round(quarterVal);
 
           // calc
           return Math.min(
             Math.max(
-              parseFloat((Math.abs(roundedQuoterVal - quoterVal) < SNAPPING_THRESHOLD ? roundedQuoterVal * QUARTER : newValue).toFixed(2)),
+              parseFloat((Math.abs(roundedQuarterVal - quarterVal) < SNAPPING_THRESHOLD ? roundedQuarterVal * QUARTER : newValue).toFixed(2)),
               ZERO
             ),
             HANDRED
