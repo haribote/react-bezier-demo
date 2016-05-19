@@ -18,7 +18,9 @@ module.exports = {
       {
         test  : /\.jsx?$/,
         loader: 'babel-loader',
+        exclude: /node_modules/,
         query : {
+          plugins: ['transform-runtime'],
           presets: ['react', 'es2015']
         }
       }
@@ -28,7 +30,9 @@ module.exports = {
     extensions: ['', '.js', '.jsx']
   },
   plugins: [
-    new webpack.HotModuleReplacementPlugin()
+    new webpack.HotModuleReplacementPlugin(),
+    new webpack.optimize.OccurenceOrderPlugin(),
+    new webpack.NoErrorsPlugin()
   ],
   devtool: 'eval-source-map'
 };
