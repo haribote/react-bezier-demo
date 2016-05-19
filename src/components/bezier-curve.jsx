@@ -22,7 +22,8 @@ export default class BezierCurve extends React.Component {
     return {
       values: [],
       width : 960,
-      height: 540
+      height: 540,
+      stroke: '#fff'
     }
   }
 
@@ -32,11 +33,11 @@ export default class BezierCurve extends React.Component {
    */
   render() {
     // cache
-    const {height} = this.props;
+    const {height, stroke} = this.props;
 
     // element
     return (
-      <path d={`M${0},${height * .5 -.5} ${this.getCurves()}`} stroke="orange" strokeWidth={5} fill="none"/>
+      <path d={`M${0},${height * .5 -.5} ${this.getCurves()}`} stroke={stroke} strokeWidth={5} fill="none"/>
     );
   }
 
@@ -55,7 +56,7 @@ export default class BezierCurve extends React.Component {
       return this.props.getY(val);
     };
     const getCurve = (startX, startY, endX, endY) => {
-      return `C${startX},${startY} ${startX},${endY} ${endX},${endY}`;
+      return `C${startX},${startY.toFixed(1)} ${startX},${endY.toFixed(1)} ${endX},${endY.toFixed(1)}`;
     };
 
     // calc

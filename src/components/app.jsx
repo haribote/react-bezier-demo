@@ -3,6 +3,19 @@ import React from 'react';
 import VerticalLine from './vertical-line';
 import HorizontalLine from './horizontal-line';
 import BezierCurve from './bezier-curve';
+import Point from './point';
+
+/** @const */
+const ZERO = 0;
+
+/** @const */
+const HANDRED = 100;
+
+/** @const */
+const QUARTER = HANDRED / 4;
+
+/** @const */
+const SNAPPING_THRESHOLD = .05;
 
 /**
  * @export App
@@ -30,8 +43,18 @@ export default class App extends React.Component {
     return {
       svgWidth  : 960,
       svgHeight : 540,
-      translateY: 20
+      translateY: 20,
+      stroke    : 'orange'
     };
+  }
+
+  /**
+   * @prop computed areaHeight
+   * @returns {number}
+   */
+  get areaHeight() {
+    const {svgHeight, translateY} = this.props;
+    return svgHeight - translateY * 2;
   }
 
   /**
@@ -40,8 +63,8 @@ export default class App extends React.Component {
    */
   render() {
     // cache
-    const {svgWidth, svgHeight, translateY} = this.props;
-    const areaHeight = svgHeight - translateY * 2;
+    const {svgWidth, svgHeight, translateY, stroke} = this.props;
+    const areaHeight = this.areaHeight;
     const {values} = this.state;
     const yList      = values.map((val, i) => {
       return svgWidth / (values.length + 1) * (i + 1) - .5;
@@ -49,7 +72,7 @@ export default class App extends React.Component {
 
     // function
     const getY = (val) => {
-      return areaHeight * (val / 100) - .5;
+      return areaHeight * (val / HANDRED) - .5;
     };
 
     // element
@@ -76,16 +99,75 @@ export default class App extends React.Component {
                                 isDashed={i % 2}/>
               );
             })}
-            <BezierCurve values={this.state.values} width={svgWidth} height={areaHeight} getY={getY}/>
+            <BezierCurve values={this.state.values} width={svgWidth} height={areaHeight} getY={getY} stroke={stroke}/>
             {values.map((val, i) => {
               return (
-                <circle key={i} r={translateY / 2} cx={0} cy={0} fill="orange"
-                        transform={`translate(${yList[i]}, ${getY(val)})`}/>
+                <Point key={i} index={i} r={translateY / 2} x={yList[i]} y={getY(val)} stroke={stroke}
+                       onMouseDown={this.pointMouseDownHandler.bind(this)}/>
               );
             })}
           </g>
         </svg>
       </div>
     );
+  }
+
+  /**
+   * @method mouse down event handler for Point
+   * @param startY
+   * @param index
+   */
+  pointMouseDownHandler(startY, index = 0) {
+    //cache
+    const {values} = this.state;
+    const value = values[index];
+
+    // function
+    const updateValueTemp = (currentY) => {
+      this.updateValue(value + HANDRED / this.areaHeight * (currentY - startY), index);
+    };
+
+    // handler
+    const moveHandler = (evMove) => {
+      updateValueTemp(evMove.pageY);
+    };
+    const upHandler   = (evUp) => {
+      updateValueTemp(evUp.pageY);
+      window.removeEventListener('mousemove', moveHandler);
+      window.removeEventListener('mouseup', upHandler);
+    };
+
+    // bind event handlers
+    window.addEventListener('mousemove', moveHandler, false);
+    window.addEventListener('mouseup', upHandler, false);
+  }
+
+  updateValue(newValue = 0, index = 0) {
+    // validate
+    if (!Number.isFinite(newValue)) {
+      return;
+    }
+
+    // update values
+    this.setState({
+      values: this.state.values.map((val, i) => {
+        if (i === index) {
+          // cache
+          const quoterVal        = newValue / QUARTER;
+          const roundedQuoterVal = Math.round(quoterVal);
+
+          // calc
+          return Math.min(
+            Math.max(
+              parseFloat((Math.abs(roundedQuoterVal - quoterVal) < SNAPPING_THRESHOLD ? roundedQuoterVal * QUARTER : newValue).toFixed(2)),
+              ZERO
+            ),
+            HANDRED
+          )
+        } else {
+          return val;
+        }
+      })
+    });
   }
 };
