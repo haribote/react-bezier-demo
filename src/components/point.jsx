@@ -10,13 +10,13 @@ export default class Point extends React.Component {
    * @param props
    */
   constructor(props) {
-    // 親を継承する
+    // succeed
     super(props);
   }
 
   /**
    * @static default properties
-   * @returns {{values: Array, width: number, height: number}}
+   * @returns {{r: number, x: number, y: number, stroke: string}}
    */
   static get defaultProps() {
     return {

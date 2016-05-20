@@ -26,10 +26,10 @@ export default class App extends React.Component {
    * @param props
    */
   constructor(props) {
-    // 親クラスを継承する
+    // succeed
     super(props);
 
-    // ステートを定義する
+    // define states
     this.state = {
       values: [25, 75, 0, 100, 25, 75, 0, 100, 25],
       inDrag: false
@@ -38,7 +38,7 @@ export default class App extends React.Component {
 
   /**
    * @static default properties
-   * @returns {{svgWidth: number, svgHeight: number}}
+   * @returns {{svgWidth: number, svgHeight: number, translateY: number, stroke: string}}
    */
   static get defaultProps() {
     return {
@@ -65,9 +65,9 @@ export default class App extends React.Component {
   render() {
     // cache
     const {svgWidth, svgHeight, translateY, stroke} = this.props;
-    const areaHeight = this.areaHeight;
     const {values, inDrag} = this.state;
-    const yList      = values.map((val, i) => {
+    const areaHeight = this.areaHeight;
+    const xList      = values.map((val, i) => {
       return svgWidth / (values.length + 1) * (i + 1) - .5;
     });
 
@@ -91,7 +91,7 @@ export default class App extends React.Component {
           <rect x={0} y={0} width="100%" height="100%" fill="url(#g0)"/>
           {values.map((val, i) => {
             return (
-              <VerticalLine key={i} x={yList[i]} startY={0} endY={svgHeight}/>
+              <VerticalLine key={i} x={xList[i]} startY={0} endY={svgHeight}/>
             );
           })}
           <g transform={`translate(0, ${translateY})`}>
@@ -100,10 +100,10 @@ export default class App extends React.Component {
                 <HorizontalLine key={i} startX={0} endX={svgWidth} y={areaHeight * y} isDashed={i % 2}/>
               );
             })}
-            <BezierCurve values={this.state.values} width={svgWidth} height={areaHeight} getY={getY} stroke={stroke}/>
+            <BezierCurve values={values} width={svgWidth} height={areaHeight} getY={getY} stroke={stroke}/>
             {values.map((val, i) => {
               return (
-                <Point key={i} index={i} r={translateY / 2} x={yList[i]} y={getY(val)} stroke={stroke}
+                <Point key={i} index={i} r={translateY / 2} x={xList[i]} y={getY(val)} stroke={stroke}
                        onMouseDown={this.pointMouseDownHandler.bind(this)}/>
               );
             })}
@@ -118,15 +118,20 @@ export default class App extends React.Component {
    * @param startY
    * @param index
    */
-  pointMouseDownHandler(startY, index = 0) {
+  pointMouseDownHandler(startY = 0, index = 0) {
     //cache
     const {values, inDrag} = this.state;
     const value = values[index];
 
-    // chech state
-    if (inDrag) {
+    // check state
+    if (inDrag || !Number.isFinite(startY) || !Number.isFinite(value)) {
       return;
     }
+
+    // update state
+    this.setState({
+      inDrag: true
+    });
 
     // function
     const updateValueTemp = (currentY) => {
@@ -153,16 +158,16 @@ export default class App extends React.Component {
     // bind event handlers
     window.addEventListener('mousemove', moveHandler, false);
     window.addEventListener('mouseup', upHandler, false);
-
-    // update state
-    this.setState({
-      inDrag: true
-    });
   }
 
+  /**
+   * @method update value
+   * @param newValue
+   * @param index
+   */
   updateValue(newValue = 0, index = 0) {
     // validate
-    if (!Number.isFinite(newValue)) {
+    if (!Number.isFinite(newValue) || !Number.isFinite(index)) {
       return;
     }
 

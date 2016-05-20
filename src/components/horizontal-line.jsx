@@ -10,7 +10,7 @@ export default class HorizontalLine extends React.Component {
    * @param props
    */
   constructor(props) {
-    // 親を継承する
+    // succeed
     super(props);
   }
 
